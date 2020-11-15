@@ -5,10 +5,7 @@ mongoose.connect('mongodb://localhost/playground', {useNewUrlParser: true, useUn
   .catch(err => console.error('Could not connect to MongoDB...', err));
 
 const authorSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
+  name: String,
   bio: String,
   website: String
 });
@@ -17,16 +14,13 @@ const Author = mongoose.model('Author', authorSchema);
 
 const Course = mongoose.model('Course', new mongoose.Schema({
   name: String,
-  author: {
-    type: authorSchema,
-    required: true
-  }
+  authors: [authorSchema]
 }));
 
-async function createCourse(name, author) {
+async function createCourse(name, authors) {
   const course = new Course({
     name, 
-    author
+    authors
   }); 
   
   const result = await course.save();
@@ -46,5 +40,24 @@ async function updateAuthor(courseId){
   });
 }
 
-updateAuthor('5fb00798c2cc7c3c18da548d');
-// createCourse('Node Course', new Author({ name: 'Mosh'}));
+async function addAuthor(courseId, author){
+  const course = await Course.findById(courseId);
+  course.authors.push(author);
+  const result = await course.save();
+  console.log(result);
+}
+
+async function removeAuthor(courseId, authorId){
+  const course = await Course.findById(courseId);
+  const author = course.authors.id(authorId);
+  author.remove();
+  course.save();
+  console.log(course);
+}
+
+removeAuthor('5fb0b5dea603de0330efe425', '5fb0c591eeb3ed1a00c83c8b');
+
+// createCourse('Node Course', [
+//   new Author({ name: 'Mosh'}),
+//   new Author({ name: 'John Smith'})
+// ]);
